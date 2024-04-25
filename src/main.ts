@@ -123,6 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const gridOptions: agGrid.GridOptions = {
     defaultColDef: {
       sortable: true,
+      resizable: false,
       suppressMovable: true,
     },
     columnDefs: columns,
