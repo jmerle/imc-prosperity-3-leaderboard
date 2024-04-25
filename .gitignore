@@ -142,6 +142,3 @@ dist
 .svelte-kit
 
 # End of https://www.toptal.com/developers/gitignore/api/node
-
-# Generated data
-data/processed.json

@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "pnpm run process && vite",
-    "build": "pnpm run process && tsc && vite build",
+    "dev": "vite",
+    "build": "tsc && vite build",
     "preview": "vite preview",
     "process": "tsx data/process.ts",
     "lint": "pnpm run \"/^lint:.*/\"",
