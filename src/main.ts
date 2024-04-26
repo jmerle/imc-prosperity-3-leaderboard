@@ -66,12 +66,14 @@ const columns: agGrid.GridOptions['columnDefs'] = [
         field: '0',
         headerName: 'Name',
         filter: 'agTextColumnFilter',
+        width: 180,
         pinned: 'left',
       },
       {
         field: '1',
         headerName: 'Country',
         filter: 'agTextColumnFilter',
+        width: 180,
       },
     ],
   },
@@ -96,7 +98,7 @@ for (let round = lastRound; round >= firstRound; round--) {
       comparator: numberComparator,
       cellClass: i > 0 ? numberClassFunc : undefined,
       sort: i === 0 && round === lastRound ? 'asc' : undefined,
-      filter: 'agNumberColumnFilter',
+      width: 120,
     });
 
     children.push({
@@ -105,7 +107,7 @@ for (let round = lastRound; round >= firstRound; round--) {
       valueFormatter: deltaFormatter,
       comparator: numberComparator,
       cellClass: numberClassFunc,
-      filter: 'agNumberColumnFilter',
+      width: 120,
     });
   }
 
@@ -125,15 +127,14 @@ document.addEventListener('DOMContentLoaded', () => {
       sortable: true,
       resizable: false,
       suppressMovable: true,
+      wrapText: true,
+      autoHeight: true,
     },
     columnDefs: columns,
     rowData: processedData.rows,
     enableCellTextSelection: true,
     suppressCellFocus: true,
     cacheQuickFilter: true,
-    autoSizeStrategy: {
-      type: 'fitCellContents',
-    },
   };
 
   const api = agGrid.createGrid(gridElem, gridOptions);
