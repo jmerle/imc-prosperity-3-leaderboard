@@ -80,7 +80,7 @@ function writeFile(relativePath: string, content: string): void {
 }
 
 const processedTeams: Record<number, ProcessedTeam> = {};
-const roundsWithData = 4;
+const roundsWithData = 5;
 
 const uniqueTeamsByRound: number[] = [];
 const rankedTeamsByRound: number[] = [];
