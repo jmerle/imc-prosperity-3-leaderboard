@@ -1,12 +1,18 @@
 import * as agGrid from 'ag-grid-community';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
+import { AllCommunityModule, ModuleRegistry, provideGlobalGridOptions } from 'ag-grid-community';
 import _processedData from '../data/processed.json';
 import { ProcessedData } from './models';
 
 import './main.css';
 
 const processedData = _processedData as ProcessedData;
+
+ModuleRegistry.registerModules([AllCommunityModule]);
+provideGlobalGridOptions({
+  theme: 'legacy',
+});
 
 function formatNumber(value: number, decimals: number = 0): string {
   return Number(value).toLocaleString(undefined, {
@@ -82,28 +88,26 @@ const columns: agGrid.GridOptions['columnDefs'] = [
 const teamColumns = 2;
 const roundColumns = 8;
 
-const firstRound = 1;
-const lastRound = processedData.uniqueTeamsByRound.length;
-
-for (let round = lastRound; round >= firstRound; round--) {
-  const offset = teamColumns + (lastRound - round) * roundColumns;
+for (let i = processedData.rounds.length - 1; i >= 0; i--) {
+  const round = processedData.rounds[i];
+  const offset = teamColumns + (processedData.rounds.length - i - 1) * roundColumns;
 
   const children: agGrid.GridOptions['columnDefs'] = [];
   const headers = ['Rank', 'Overall', 'Manual', 'Algo'];
-  for (let i = 0; i < headers.length; i++) {
+  for (let j = 0; j < headers.length; j++) {
     children.push({
-      field: `${offset + i * 2}`,
-      headerName: headers[i],
+      field: `${offset + j * 2}`,
+      headerName: headers[j],
       valueFormatter: numberFormatter,
       comparator: numberComparator,
-      cellClass: i > 0 ? numberClassFunc : undefined,
-      sort: i === 0 && round === lastRound ? 'asc' : undefined,
+      cellClass: j > 0 ? numberClassFunc : undefined,
+      sort: i === processedData.rounds.length - 1 && j === 0 ? 'asc' : undefined,
       width: 120,
     });
 
     children.push({
-      field: `${offset + i * 2 + 1}`,
-      headerName: `${headers[i]} Δ`,
+      field: `${offset + j * 2 + 1}`,
+      headerName: `${headers[j]} Δ`,
       valueFormatter: deltaFormatter,
       comparator: numberComparator,
       cellClass: numberClassFunc,
@@ -111,11 +115,8 @@ for (let round = lastRound; round >= firstRound; round--) {
     });
   }
 
-  const uniqueTeams = processedData.uniqueTeamsByRound[round - 1];
-  const rankedTeams = processedData.rankedTeamsByRound[round - 1];
-
   columns.push({
-    headerName: `After round ${round} • ${formatNumber(uniqueTeams)} unique teams • ${formatNumber(rankedTeams)} ranked teams`,
+    headerName: `${round.label} • ${formatNumber(round.registeredTeams)} registered teams • ${formatNumber(round.rankedTeams)} ranked teams`,
     children,
   });
 }

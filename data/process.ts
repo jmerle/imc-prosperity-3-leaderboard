@@ -1,6 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { ProcessedData, ProcessedRow } from '../src/models';
+import { ProcessedData, ProcessedRow, Round } from '../src/models';
 
 interface ArchipelagoTile {
   position: string;
@@ -80,26 +80,34 @@ function writeFile(relativePath: string, content: string): void {
 }
 
 const processedTeams: Record<number, ProcessedTeam> = {};
-const roundsWithData = 5;
-
-const uniqueTeamsByRound: number[] = [];
-const rankedTeamsByRound: number[] = [];
+const processedRounds: Round[] = [];
 
 const countryCodeFormatter = new Intl.DisplayNames(['en'], { type: 'region' });
 
-for (let round = 1; round <= roundsWithData; round++) {
-  const archipelagoData = readFile<ArchipelagoData>(`round${round}/archipelago_ROUND${round + 1}.json`);
-  const leaderboardData = readFile<LeaderboardData>(`round${round}/team-leaderboard.json`);
+const dataDirectories: [number, string, string][] = [
+  [1, 'After round 1 (before rerun)', 'round1-before-rerun'],
+  [1, 'After round 1 (after rerun)', 'round1-after-rerun'],
+  [2, 'After round 2', 'round2'],
+];
 
-  uniqueTeamsByRound.push(archipelagoData.length);
-  rankedTeamsByRound.push(archipelagoData.filter(row => row.currentPlace !== null).length);
+for (let i = 0; i < dataDirectories.length; i++) {
+  const [roundNum, label, directory] = dataDirectories[i];
+
+  const archipelagoData = readFile<ArchipelagoData>(`${directory}/archipelago_ROUND${roundNum + 1}.json`);
+  const leaderboardData = readFile<LeaderboardData>(`${directory}/team-leaderboard.json`);
+
+  processedRounds.push({
+    label,
+    registeredTeams: archipelagoData.length,
+    rankedTeams: archipelagoData.filter(row => row.currentPlace !== null).length,
+  });
 
   for (const row of archipelagoData) {
     if (processedTeams[row.teamId] === undefined) {
       processedTeams[row.teamId] = {
         name: row.team.name,
         country: countryCodeFormatter.of(row.country)!.replace('Hong Kong SAR China', 'Hong Kong'),
-        results: new Array(roundsWithData).fill(null),
+        results: new Array(dataDirectories.length).fill(null),
       };
     }
 
@@ -108,7 +116,7 @@ for (let round = 1; round <= roundsWithData; round++) {
     }
 
     const processedTeam = processedTeams[row.teamId];
-    processedTeam.results[round - 1] = {
+    processedTeam.results[i] = {
       overall: {
         rank: row.currentPlace,
         profit: row.profit,
@@ -121,7 +129,7 @@ for (let round = 1; round <= roundsWithData; round++) {
   for (const category of ['manual', 'algo'] as const) {
     for (const row of leaderboardData[category]) {
       const processedTeam = processedTeams[parseInt(row.teamId)];
-      processedTeam.results[round - 1]![category] = {
+      processedTeam.results[i]![category] = {
         rank: row.position,
         profit: row.profit,
       };
@@ -133,7 +141,7 @@ for (let round = 1; round <= roundsWithData; round++) {
 
     for (const row of leaderboardData[category]) {
       const processedTeam = processedTeams[parseInt(row.teamId)];
-      const result = processedTeam.results[round - 1]!;
+      const result = processedTeam.results[i]!;
 
       if (result[category] !== null && result[oppositeCategory] === null) {
         result[oppositeCategory] = {
@@ -182,14 +190,14 @@ function getValueDeltaPair(
   }
 
   const delta = item === 'rank' ? previousValue - currentValue : currentValue - previousValue;
-  return [currentValue, delta];
+  return [currentValue, delta > -1e-6 && delta < 1e-6 ? 0 : delta];
 }
 
 const rows: ProcessedData['rows'] = [];
 for (const team of Object.values(processedTeams)) {
   const row: ProcessedRow = [team.name, team.country];
 
-  for (let round = roundsWithData - 1; round >= 0; round--) {
+  for (let round = processedRounds.length - 1; round >= 0; round--) {
     row.push(...getValueDeltaPair(team.results, round, 'overall', 'rank'));
     row.push(...getValueDeltaPair(team.results, round, 'overall', 'profit'));
     row.push(...getValueDeltaPair(team.results, round, 'manual', 'profit'));
@@ -201,8 +209,7 @@ for (const team of Object.values(processedTeams)) {
 
 const data: ProcessedData = {
   rows,
-  uniqueTeamsByRound,
-  rankedTeamsByRound,
+  rounds: processedRounds,
 };
 
 writeFile('processed.json', JSON.stringify(data));
