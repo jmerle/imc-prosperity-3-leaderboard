@@ -87,7 +87,8 @@ const countryCodeFormatter = new Intl.DisplayNames(['en'], { type: 'region' });
 const dataDirectories: [number, string, string][] = [
   [1, 'After round 1 (before rerun)', 'round1-before-rerun'],
   [1, 'After round 1 (after rerun)', 'round1-after-rerun'],
-  [2, 'After round 2', 'round2'],
+  [2, 'After round 2 (before hardcoding update)', 'round2-before-hardcoding-update'],
+  [2, 'After round 2 (after hardcoding update)', 'round2-after-hardcoding-update'],
 ];
 
 for (let i = 0; i < dataDirectories.length; i++) {
