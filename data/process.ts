@@ -91,6 +91,7 @@ const dataDirectories: [number, string, string][] = [
   [2, 'After round 2 (after hardcoding update)', 'round2-after-hardcoding-update'],
   [3, 'After round 3 (before manual update)', 'round3-before-manual-update'],
   [3, 'After round 3 (after manual update)', 'round3-after-manual-update'],
+  [4, 'After round 4', 'round4'],
 ];
 
 for (let i = 0; i < dataDirectories.length; i++) {
